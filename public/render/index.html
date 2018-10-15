@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ru">
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/3.5.1/math.min.js"></script>
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+	<div class="container-fluid">
+		<h1>
+			JS Рендерер
+		</h1>
+		<row>
+			<div class="col-sm-9" id="viewport" style="border: 1px solid; padding: 0;">
+				<canvas height=100% width=100% id='canvas' style="cursor: move;">Браузер говняузер</canvas>
+			</div>
+			<div class="col-sm-3">
+				<label for=Zpl>Расстояние от центра камеры до плоскости проецирования</label>
+				<input type="range" id="Zpl" min="0" value="3" max="5" step="0.1">
+				<span id="ZplVal"></span>
+
+				<label for=Zk>Z-координата центра камеры</label>
+				<input type="range" id="Zk" min="-1" value="3" max="10" step="0.1">
+				<span id="ZkVal"></span>
+				<br>
+
+				<label for="rotateX">Поворот по X</label>
+				<input type="range" id="rotateX" min="0" value="0" max="2" step="0.05">
+				<label for="rotateY">Поворот по Y</label>
+				<input type="range" id="rotateY" min="0" value="0" max="2" step="0.05">
+				<label for="rotateZ">Поворот по Z</label>
+				<input type="range" id="rotateZ" min="0" value="0" max="2" step="0.05">
+				<br>
+
+				<label for="moveX">Смещение по X</label>
+				<input type="range" id="moveX" min="-5" value="0" max="5" step="0.1">
+				<label for="moveY">Смещение по Y</label>
+				<input type="range" id="moveY" min="-5" value="0" max="5" step="0.1">
+				<label for="moveZ">Смещение по Z</label>
+				<input type="range" id="moveZ" min="-5" value="0" max="5" step="0.1">
+				
+				<div class="checkbox">
+					<label>
+						<input type="checkbox" id="perspectiveCheck" checked> Перспектива
+					</label>
+				</div>
+				<div class="checkbox">
+					<label>
+						<input type="checkbox" id="fillCheck" checked> Заливка
+					</label>
+				</div>
+				<div class="checkbox">
+					<label>
+						<input type="checkbox" id="smoothLight"> Мягкое освещение
+					</label>
+				</div>
+				<div class="checkbox">
+					<label>
+						<input type="checkbox" id="textureCheck" checked> Текстуры
+					</label>
+				</div>
+				<div class="checkbox">
+					<label>
+						<input type="checkbox" id="strokeCheck"> Сетка
+					</label>
+				</div>
+				<br>
+				
+				<label for="file">Модель</label>
+				<input type="file" name="file" id="file">
+				<br>
+				<label for="texture">Текстура(кнопка не работает)</label>
+				<input type="file" name="texture" id="texture">
+			</div>
+		</row>
+	</div>
+	<script src="main.js"></script>
+</html>
