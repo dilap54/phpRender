@@ -9,8 +9,10 @@ function matrixmult($m1,$m2){
                   $m1[$i] = array($m1[$i]);
             }
       }
+      $c=count($m2[0]);
+	$p=count($m2);
       if (!is_array($m2[0])){
-            for ($i=0; $i<$r; $i++){
+            for ($i=0; $i<$p; $i++){
                   $m2[$i] = array($m2[$i]);
             }
       }
@@ -39,8 +41,9 @@ class Object3d {
       private $file_content;
       private $vertexes = array(array(null, null, null, null));
       private $projectionVertexes = array(array(null, null, null, null));
+      private $projectionNormals = array();
       private $faces = array();
-      private $normals = array();
+      private $normals = array(array(null, null, null, null));
       private $VTs = array();
       
       /**Z координата центра камеры */
@@ -185,6 +188,12 @@ class Object3d {
                   
                   $this->projectionVertexes[$i] = $transformedVertex;
             }
+
+            $this->projectionNormals = array($this->normals);
+            $normalsLength = count($this->normals);
+            for ($i=1; $i<$normalsLength; $i++){
+                  $this->projectionNormals[$i] = matrixmult($rotateMatrix, $this->normals[$i]);
+            }
       }
 
       function line($x0, $y0, $x1, $y1, $image){
@@ -236,6 +245,31 @@ class Object3d {
             }
       }
 
+      function getNormalVector($face){
+            $firstTriangleVector = array(
+                  "px" => $face[1]["px"]-$face[0]["px"],
+                  "py" => $face[1]["py"]-$face[0]["py"],
+                  "pz" => $face[1]["pz"]-$face[0]["pz"]
+            );
+            $secondTriangleVector = array(
+                  "px" => $face[2]["px"]-$face[0]["px"],
+                  "py" => $face[2]["py"]-$face[0]["py"],
+                  "pz" => $face[2]["pz"]-$face[0]["pz"]
+            );
+            $normalVector = array(
+                  $firstTriangleVector["py"]*$secondTriangleVector["pz"]-$firstTriangleVector["pz"]*$secondTriangleVector["py"],
+                  -($firstTriangleVector["px"]*$secondTriangleVector["pz"]-$firstTriangleVector["pz"]*$secondTriangleVector["px"]),
+                  $firstTriangleVector["px"]*$secondTriangleVector["py"]-$firstTriangleVector["py"]*$secondTriangleVector["px"]
+            );
+            $normalLength = sqrt($normalVector[0]*$normalVector[0]+$normalVector[1]*$normalVector[1]+$normalVector[2]*$normalVector[2]);
+            $normalVector = array(
+                  $normalVector[0]/$normalLength,
+                  $normalVector[1]/$normalLength,
+                  $normalVector[2]/$normalLength,
+            );
+            return $normalVector;
+      }
+
       public function paint($width, $heigth, $image){
             $aspect = min($width, $heigth);
             $width2 = $width >> 1;
@@ -249,11 +283,21 @@ class Object3d {
                               "px" => $this->projectionVertexes[$this->faces[$i][$j]["pos"]][0],
                               "py" => $this->projectionVertexes[$this->faces[$i][$j]["pos"]][1],
                               "pz" => $this->projectionVertexes[$this->faces[$i][$j]["pos"]][2],
+                              "nx" => (is_array($this->projectionNormals[$this->faces[$i][$j]["norm"]]) ? $this->projectionNormals[$this->faces[$i][$j]["norm"]][0] : 0),
+                              "ny" => (is_array($this->projectionNormals[$this->faces[$i][$j]["norm"]]) ? $this->projectionNormals[$this->faces[$i][$j]["norm"]][1] : 0),
+                              "nz" => (is_array($this->projectionNormals[$this->faces[$i][$j]["norm"]]) ? $this->projectionNormals[$this->faces[$i][$j]["norm"]][2] : 0),
                         );
                   }
-                  if ($face[0]["py"] != $face[1]["py"] || $face[0]["py"] != $face[2]["py"]){
+
+                  $normalVector = $this->getNormalVector($face);
+
+                  if ($normalVector[2] > 0 && ($face[0]["py"] != $face[1]["py"] || $face[0]["py"] != $face[2]["py"])){
+                        $shadeOfGray = 1;
+                        $shadeOfGray = $normalVector[2];
+                        
                         //Обработка точек face'а перед отрисовкой
                         for ($j=0; $j<3; $j++){
+                              //Переход в экранные координаты
                               $face[$j]["px"] = $face[$j]["px"]*$w+$width2;
                               $face[$j]["py"] = $face[$j]["py"]*$h+$heigth2;
                         }
