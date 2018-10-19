@@ -3,7 +3,17 @@
  * Функция умножения двух матриц
  */
 function matrixmult($m1,$m2){
-	$r=count($m1);
+      $r=count($m1);
+      if (!is_array($m1[0])){
+            for ($i=0; $i<$r; $i++){
+                  $m1[$i] = array($m1[$i]);
+            }
+      }
+      if (!is_array($m2[0])){
+            for ($i=0; $i<$r; $i++){
+                  $m2[$i] = array($m2[$i]);
+            }
+      }
 	$c=count($m2[0]);
 	$p=count($m2);
 	if(count($m1[0])!=$p){throw new Exception('Incompatible matrixes');}
@@ -15,7 +25,12 @@ function matrixmult($m1,$m2){
 				$m3[$i][$j]+=$m1[$i][$k]*$m2[$k][$j];
 			}
 		}
-	}
+      }
+      if (count($m3[0]) == 1){
+            for ($i=0; $i<count($m3); $i++){
+                  $m3[$i] = $m3[$i][0];
+            }
+      }
 	return($m3);
 }
 
@@ -23,19 +38,20 @@ class Object3d {
       private $file_name;
       private $file_content;
       private $vertexes = array(array(null, null, null, null));
-      private $projectionVertexes;
+      private $projectionVertexes = array(array(null, null, null, null));
       private $faces = array();
       private $normals = array();
       private $VTs = array();
       
+      /**Z координата центра камеры */
       public $Zk = 2;
-      public $ZkplDiff = 1;
-      public $Zpl = 1;
-      public $rotateX = 0;
-      public $rotateY = 0;
+      /**Расстояние от центра камеры до плоскости проецирования */
+      public $Zpl = -1;
+      public $rotateX = 0.2;
+      public $rotateY = 0.2;
       public $rotateZ = 0;
       public $movX = 0;
-      public $movY = 0;
+      public $movY = -0.3;
       public $movZ = 0;
 
       function __construct($file_name){
@@ -158,7 +174,6 @@ class Object3d {
             for ($i=1; $i<$vertexesLength; $i++){
                   
                   $transformedVertex = matrixmult($transformMatrix, $this->vertexes[$i]);
-                  var_dump($transformedVertex);
                   $projectionMatrix = array(
                         array(($this->Zk-$this->Zpl)/($this->Zk-$transformedVertex[2][0]), 0, 0, 0),
                         array(0, ($this->Zk-$this->Zpl)/($this->Zk-$transformedVertex[2][0]), 0, 0),
@@ -170,9 +185,6 @@ class Object3d {
                   
                   $this->projectionVertexes[$i] = $transformedVertex;
             }
-
-            
-             
       }
 
       function line($x0, $y0, $x1, $y1, $image){
@@ -234,9 +246,9 @@ class Object3d {
             for ($i = 0; $i<$facesLength; $i++){
                   for ($j = 0; $j < 3; $j++){
                         $face[$j] = array(
-                              "px" => $this->vertexes[$this->faces[$i][$j]["pos"]][0],
-                              "py" => $this->vertexes[$this->faces[$i][$j]["pos"]][1],
-                              "pz" => $this->vertexes[$this->faces[$i][$j]["pos"]][2],
+                              "px" => $this->projectionVertexes[$this->faces[$i][$j]["pos"]][0],
+                              "py" => $this->projectionVertexes[$this->faces[$i][$j]["pos"]][1],
+                              "pz" => $this->projectionVertexes[$this->faces[$i][$j]["pos"]][2],
                         );
                   }
                   if ($face[0]["py"] != $face[1]["py"] || $face[0]["py"] != $face[2]["py"]){
@@ -269,7 +281,7 @@ imagefill($image, 0, 0, imagecolorallocate($image, 255, 255, 255));
 $object3d->buildProjectionVertexes();
 $object3d->paint(600, 300, $image);
 
-//header ('Content-Type: image/png');
-//imagepng($image);
+header ('Content-Type: image/png');
+imagepng($image);
 imagedestroy($image);
 ?>
