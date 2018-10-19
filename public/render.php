@@ -45,6 +45,7 @@ class Object3d {
       private $faces = array();
       private $normals = array(array(null, null, null, null));
       private $VTs = array();
+      private $zbuffer = array();
       
       /**Z координата центра камеры */
       public $Zk = 2;
@@ -271,6 +272,7 @@ class Object3d {
       }
 
       public function paint($width, $heigth, $image){
+            $this->zbuffer = array_fill(0, $width*$heigth, -INF);
             $aspect = min($width, $heigth);
             $width2 = $width >> 1;
             $heigth2 = $heigth >> 1;
@@ -299,9 +301,141 @@ class Object3d {
                         for ($j=0; $j<3; $j++){
                               //Переход в экранные координаты
                               $face[$j]["px"] = $face[$j]["px"]*$w+$width2;
-                              $face[$j]["py"] = $face[$j]["py"]*$h+$heigth2;
+                              $face[$j]["py"] = round($face[$j]["py"]*$h+$heigth2);
                         }
       
+                        /**
+                         * Отрисовка поверхностей
+                         */
+
+                        $t0 = $face[0];
+                        $t1 = $face[1];
+                        $t2 = $face[2];
+
+                        if ($t0["py"]>$t1["py"]){
+                              $tt = $t0;
+                              $t0 = $t1;
+                              $t1 = $tt;
+                        }
+                        if ($t0["py"]>$t2["py"]){
+                              $tt = $t0;
+                              $t0 = $t2;
+                              $t2 = $tt;
+                        }
+                        if ($t1["py"]>$t2["py"]){
+                              $tt = $t1;
+                              $t1 = $t2;
+                              $t2 = $tt;
+                        }
+
+                        $totalHeight = $t2["py"]-$t0["py"]+1;
+                        if ($t0["py"]<0){
+                              $t0["py"] = 0;
+                        }
+                        if ($t2["py"]>$heigth){
+                              $t2["py"] = $heigth;
+                        }
+
+                        $t2minust0 = array(
+                              "px" => $t2["px"]-$t0["px"],
+                              "py" => $t2["py"]-$t0["py"],
+                              "pz" => $t2["pz"]-$t0["pz"],
+                              "nx" => $t2["nx"]-$t0["nx"],
+                              "ny" => $t2["ny"]-$t0["ny"],
+                              "nz" => $t2["nz"]-$t0["nz"]
+                        );
+
+                        $t2minust1 = array(
+                              "px" => $t2["px"]-$t1["px"],
+                              "py" => $t2["py"]-$t1["py"],
+                              "pz" => $t2["pz"]-$t1["pz"],
+                              "nx" => $t2["nx"]-$t1["nx"],
+                              "ny" => $t2["ny"]-$t1["ny"],
+                              "nz" => $t2["nz"]-$t1["nz"]
+                        );
+
+                        $t1minust0 = array(
+                              "px" => $t1["px"]-$t0["px"],
+                              "py" => $t1["py"]-$t0["py"],
+                              "pz" => $t1["pz"]-$t0["pz"],
+                              "nx" => $t1["nx"]-$t0["nx"],
+                              "ny" => $t1["ny"]-$t0["ny"],
+                              "nz" => $t1["nz"]-$t0["nz"]
+                        );
+
+                        $A; $B; $alpha = 1; $beta = 1;
+                        for ($y = $t0["py"]; $y<=$t2["py"]; $y++){//Каждая строка в изображении
+                              $secondHalf = $y>$t1["py"] || $t1["py"] == $t0["py"];
+                              $segmentHeight = ($secondHalf) ? $t2["py"]-$t1["py"]+1 : $t1["py"]-$t0["py"]+1;
+                              if ($segmentHeight == 0){
+                                    $segmentHeight = 1;
+                              }
+                              $alpha = ($y-$t0["py"])/$totalHeight;
+                              $beta = ($secondHalf) ? ($y-$t1["py"])/$segmentHeight : ($y-$t0["py"])/$segmentHeight;
+                              $A = array(
+                                    "px" => floor($t2minust0["px"]*$alpha+$t0["px"]),
+                                    "py" => floor($t2minust0["py"]*$alpha+$t0["py"])|0,
+                                    "pz" => $t2minust0["pz"]*$alpha+$t0["pz"],
+                                    "nx" => $t2minust0["nx"]*$alpha+$t0["nx"],
+                                    "ny" => $t2minust0["ny"]*$alpha+$t0["ny"],
+                                    "nz" => $t2minust0["nz"]*$alpha+$t0["nz"]
+                              );
+                              if ($secondHalf){
+                                    $B = array(
+                                          "px" => floor($t2minust1["px"]*$beta+$t1["px"]),
+                                          "py" => floor($t2minust1["py"]*$beta+$t1["py"]),
+                                          "pz" => $t2minust1["pz"]*$beta+$t1["pz"],
+                                          "nx" => $t2minust1["nx"]*$beta+$t1["nx"],
+                                          "ny" => $t2minust1["ny"]*$beta+$t1["ny"],
+                                          "nz" => $t2minust1["nz"]*$beta+$t1["nz"]
+                                    );
+                              } else {
+                                    $B = array(
+                                          "px" => floor($t1minust0["px"]*$beta+$t0["px"]),
+                                          "py" => floor($t1minust0["py"]*$beta+$t0["py"]),
+                                          "pz" => $t1minust0["pz"]*$beta+$t0["pz"],
+                                          "nx" => $t1minust0["nx"]*$beta+$t0["nx"],
+                                          "ny" => $t1minust0["ny"]*$beta+$t0["ny"],
+                                          "nz" => $t1minust0["nz"]*$beta+$t0["nz"]
+                                    );
+                              }
+                              if ($A["px"]>$B["px"]){
+                                    $tt = $A;
+                                    $A = $B;
+                                    $B = $tt;
+                              }
+                              if ($A["px"]<0){
+                                    $A["px"] = 0;
+                              }
+                              if ($B["px"]>$width){
+                                    $B["px"] = $width;
+                              }
+                              $z = 0; $ywidth = $y*$width;
+                              $apxEqualBpx = ($A["px"] == $B["px"]);
+                              $bpzMinusApz = $B["pz"]-$A["pz"];
+                              $phi = 1;
+                              for ($j = $A["px"]; $j<$B["px"]; $j++){//Каждый пиксель
+                                    if ($apxEqualBpx){
+                                          $phi = 1;
+                                    } else {
+                                          $phi = ($j-$A["px"])/($B["px"]-$A["px"]);
+                                    }
+                                    $z = $A["pz"]+($bpzMinusApz)*$phi;
+
+                                    $idx = $ywidth+$j;
+
+                                    $color = imagecolorallocate($image, round(250*$shadeOfGray), round(250*$shadeOfGray), round(250*$shadeOfGray));
+                                    
+                                    if ($this->zbuffer[$idx]<$z){
+                                          $this->zbuffer[$idx] = $z;
+                                          imagesetpixel($image, $j, $y, $color);
+                                    }
+                              }
+                        }
+
+                        /**
+                         * Отрисовка ребер
+                         */
                         $x = round($face[0]["px"]);
                         $y = round($face[0]["py"]);
       
