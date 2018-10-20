@@ -10,19 +10,25 @@
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 	<div class="container-fluid">
 		<h1>
-			JS Рендерер
+			PHP Рендерер
 		</h1>
-		<row>
-			<div class="col-sm-9" id="viewport" style="border: 1px solid; padding: 0;">
-				<canvas height=100% width=100% id='canvas' style="cursor: move;">Браузер говняузер</canvas>
+			<div class="col-sm-9" id="viewport">
+				<img style="border: 1px solid; padding: 0;" height=100% width=100% id='img'/>
+				<label for=imgsrc>Ссылка на изображение</label>
+				<input type="text" id="imgsrc" style="width: 100%" readonly>
 			</div>
 			<div class="col-sm-3">
+				<label for=fileId>ID модели</label>
+				<input type="number" id="fileId" min="1" value="1">
+				<br>
+				<br>
+
 				<label for=Zpl>Расстояние от центра камеры до плоскости проецирования</label>
 				<input type="range" id="Zpl" min="0" value="3" max="5" step="0.1">
 				<span id="ZplVal"></span>
 
 				<label for=Zk>Z-координата центра камеры</label>
-				<input type="range" id="Zk" min="-1" value="3" max="10" step="0.1">
+				<input type="range" id="Zk" min="-1" value="3" max="100" step="0.1">
 				<span id="ZkVal"></span>
 				<br>
 
@@ -53,28 +59,14 @@
 				</div>
 				<div class="checkbox">
 					<label>
-						<input type="checkbox" id="smoothLight"> Мягкое освещение
-					</label>
-				</div>
-				<div class="checkbox">
-					<label>
-						<input type="checkbox" id="textureCheck" checked> Текстуры
-					</label>
-				</div>
-				<div class="checkbox">
-					<label>
 						<input type="checkbox" id="strokeCheck"> Сетка
 					</label>
 				</div>
 				<br>
 				
 				<label for="file">Модель</label>
-				<input type="file" name="file" id="file">
-				<br>
-				<label for="texture">Текстура(кнопка не работает)</label>
-				<input type="file" name="texture" id="texture">
+				<input type="file" name="file" id="file" accept=".obj">
 			</div>
-		</row>
 	</div>
 	<script src="main.js"></script>
 </html>

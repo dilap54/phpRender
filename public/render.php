@@ -1,10 +1,22 @@
 <?php
 /**
- * http://192.168.1.111:3334/render.php?Zk=1.5&ZKplDiff=1.5&rotateX=0.1&rotateY=-0.1&movY=-0.3&movZ=0.1&width=720&height=600
+ * http://192.168.1.111:3334/render.php?ZKplDiff=3&Zk=3&rotateX=0&rotateY=0&rotateZ=0&movX=0&movY=0&movZ=0&width=893&height=480&modelId=1&fill&perspective
  */
     require_once('Renderer.php');
+    require_once('db.php');
 
-    $renderer = new Renderer('files/diablo3_pose.obj');
+    if (isset($_GET["modelId"])){
+        $modelId = intval($_GET["modelId"]);
+    } else {
+        http_response_code(400);
+        exit();
+    }
+    
+    
+    $sqlresult = $db->query("SELECT * FROM `models` WHERE (`id` = " . $modelId . ") LIMIT 1;");
+    $row = $sqlresult->fetch_assoc();
+
+    $renderer = new Renderer("files/" . $row["filename"]);
 
     if (isset($_GET["Zk"])){
         $renderer->Zk = $_GET["Zk"];
@@ -29,6 +41,15 @@
     }
     if (isset($_GET["movZ"])){
         $renderer->movZ = $_GET["movZ"];
+    }
+    if (isset($_GET["fill"])){
+        $renderer->fill = true;
+    }
+    if (isset($_GET["stroke"])){
+        $renderer->stroke = true;
+    }
+    if (isset($_GET["perspective"])){
+        $renderer->perspective = true;
     }
 
     $width = 600;
