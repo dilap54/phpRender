@@ -1,0 +1,28 @@
+@startuml
+title "Серверная часть"
+participant Браузер
+participant "web-сервер"
+participant "render.php"
+participant "Renderer.php"
+Браузер -> "web-сервер": GET запрос\nглавной страницы
+"web-сервер" -> Браузер: index.html
+Браузер -> "web-сервер": Загрузка файла
+"web-сервер" -> upload.php: .obj файл
+upload.php -> upload.php: Сохранение файла\nна диске
+upload.php -> MySQL: Создание записи\nо новом файле
+MySQL -> upload.php: ID файла
+upload.php -> "web-сервер": ID файла
+"web-сервер" -> Браузер: ID файла
+Браузер -> "web-сервер": Запрос изображения\n/render.php?...
+"web-сервер" -> "render.php": Передача параметров\nрендеринга
+"render.php" -> MySQL: Поиск имени файла по id записи
+MySQL -> "render.php": Имя файла
+"render.php"->"Renderer.php": Передача параметров отрисовки,\n имени файла и холста
+"Renderer.php"->"Renderer.php": Считывание файла
+"Renderer.php"->"Renderer.php": Парсинг файла
+"Renderer.php"->"Renderer.php": Преобразования на основе\nпереданных параметров
+"Renderer.php"->"Renderer.php": Отрисовка модели на холсте
+"render.php"->"render.php": Кодирование изображения\nна холсте в png
+"render.php"->"web-сервер": Изображение
+"web-сервер"->Браузер: Изображение
+@enduml
